@@ -2,7 +2,7 @@ const request = require('supertest');
 const server = require('../server');
 const db = require('../data/db-config');
 const jwtDecode = require('jwt-decode');
-const { users } = require('../data/sample-data');
+const { users, tech_items } = require('../data/sample-data');
 
 const marlin = { username: 'marlin', password: '1234', role_id: 1 }; // owners
 const crush = { username: 'crush', password: '1234', role_id: 1 };
@@ -116,4 +116,13 @@ describe('server.js', () => {
       expect(res.body).toMatchObject({ message: /logged out/i });
     });
   });
-})
+  describe('[GET] /api/tech_items', () => {
+    it('on SUCCESS reponds with status 200 and list of tech items', async () => {
+      const { body } = await request(server).post('/api/auth/login');
+      const { token } = body;
+      const res = await request(server).get('/api/tech_items').set('authorization', token);
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveLength(tech_items.length);
+    });
+  });
+});
