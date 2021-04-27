@@ -1,0 +1,350 @@
+## API Documentation
+
+### auth
+
+#### register
+
+- [ ] `[POST] /api/auth/register`
+
+required: { `username`, `password`, `role_id` }
+
+request body:
+
+```js
+{
+  username: "foo",
+  password: "1234",
+  role_id: 1 // set to 1 for owner, set to 2 for renter
+}
+```
+
+response body:
+
+```js
+{
+  user_id: 1,
+  username: "foo",
+  role_name: "owner"
+}
+```
+
+#### login
+
+- [ ] `[POST] /api/auth/login`
+
+required: { `username`, `password` }
+
+request body:
+
+```js
+{
+  username: "foo",
+  password: "1234"
+}
+```
+
+response body:
+
+```js
+{
+  message: "Welcome back, foo",
+  user_id: 1,
+  username: "foo",
+  role_name: "owner",
+  token: `<token>`
+}
+```
+
+#### logout
+
+- [ ] `[GET] /api/auth/logout`
+
+response body:
+
+```js
+{
+  message: "logged out"
+}
+```
+
+### tech_items
+
+required: `headers: { authorization: <token> }`
+
+- [ ] `[GET] /api/tech_items`
+
+response body:
+
+```js
+[ 
+  {
+    tech_item_id: 1,
+    tech_item_title: "Tech Item Title",
+    tech_item_description: "Tech Item Description",
+    tech_item_price: 110.00,
+    min_rental_period: 24,
+    max_rental_period: 168,
+    category_name: "Virtual Reality",
+    owner_id: 1,
+    owner_name: "foo"
+  },
+  // etc.
+]
+```
+
+- [ ] `[GET] /api/tech_items/:tech_item_id`
+
+response body:
+
+```js
+{
+  tech_item_id: 1,
+  tech_item_title: "Tech Item Title",
+  tech_item_description: "Tech Item Description",
+  tech_item_price: 110.00,
+  min_rental_period: 24,
+  max_rental_period: 168,
+  category_name: "Virtual Reality",
+  owner_id: 1,
+  owner_name: "foo"
+}
+```
+
+- [ ] `[GET] /api/tech_items/:owner_id`
+
+response body:
+
+```js
+/* list of items that belong to same owner */
+[
+  {
+    tech_item_id: 1,
+    tech_item_title: "Tech Item Title",
+    tech_item_description: "Tech Item Description",
+    tech_item_price: 110.00,
+    min_rental_period: 24,
+    max_rental_period: 168,
+    category_name: "Virtual Reality",
+    owner_id: 1,
+    owner_name: "foo"
+  },
+  // etc.
+]
+```
+
+- [ ] `[POST] /api/tech_items`
+
+only available to `owner`
+
+request body:
+
+```js
+{
+  tech_item_title: "Tech Item Title",
+  tech_item_description: "Tech Item Description",
+  tech_item_price: 110.00,
+  min_rental_period: 24,
+  max_rental_period: 168,
+  category_name: "Virtual Reality"
+}
+```
+
+response body:
+
+```js
+{
+  tech_item_id: 2
+  tech_item_title: "Tech Item Title",
+  tech_item_description: "Tech Item Description",
+  tech_item_price: 110.00,
+  min_rental_period: 24,
+  max_rental_period: 168,
+  category_name: "Virtual Reality",
+  owner_id: 1,
+  owner_name: "foo"
+}
+```
+
+- [ ] `[PUT] /api/tech_items/:tech_item_id`
+
+required:
+
+```js
+{
+  tech_item_title,
+  tech_item_price,
+  min_rental_period,
+  max_rental_period,
+  category_name
+}
+```
+
+request body:
+
+```js
+{
+  tech_item_id: 1,
+  tech_item_title: "New Tech Item Title",
+  tech_item_description: "New Tech Item Description",
+  tech_item_price: 50.00,
+  min_rental_period: 36,
+  max_rental_period: 72,
+  category_name: "Virtual Reality"
+}
+```
+
+response body:
+
+```js
+{
+  tech_item_id: 1,
+  tech_item_title: "New Tech Item Title",
+  tech_item_description: "New Tech Item Description",
+  tech_item_price: 50.00,
+  min_rental_period: 36,
+  max_rental_period: 72,
+  category_name: "Virtual Reality",
+  owner_id: 1,
+  owner_name: "foo"
+}
+```
+
+- [ ] `[DELETE] /api/tech_items/:tech_item_id`
+
+response body:
+
+```js
+{
+  tech_item_id: 1
+}
+```
+
+### rentals
+
+required: `headers: { authorization: <token> }`
+
+- [ ] `[GET] /api/rentals`
+
+response body: 
+
+```js
+[
+  {
+    tech_item_title: "Tech Item Title",
+    tech_item_description: "Tech Item Description",
+    tech_item_price: 110.00,
+    min_rental_period: 24,
+    max_rental_period: 168,
+    category_name: "Virtual Reality",
+    owner_id: 1,
+    owner_name: "foo"
+  }
+]
+```
+
+- [ ] `[GET] /api/rentals/:owner_id`
+
+response body:
+
+```js
+/* list of tech_items `owner` has rented */
+[
+  {
+    rental_id: 1,
+    tech_item_id: 1,
+    tech_item_title: "Tech Item Title",
+    tech_item_description: "Tech Item Description",
+    tech_item_price: 110.00,
+    min_rental_period: 24,
+    max_rental_period: 168,
+    category_name: "Virtual Reality",
+    owner_id: 1,
+    owner_name: "foo",
+    renter_name: "bar",
+    created_at: `<timestamp>`,
+    rental_period: 168
+  },
+  // etc.
+]
+
+```
+- [ ] `[GET] /api/rentals/:renter_id`
+
+response body:
+
+```js
+/* list of tech_items `renter` is borrowing */
+[
+  {
+    rental_id: 1,
+    tech_item_id: 1,
+    tech_item_title: "Tech Item Title",
+    tech_item_description: "Tech Item Description",
+    tech_item_price: 110.00,
+    min_rental_period: 24,
+    max_rental_period: 168,
+    category_name: "Virtual Reality",
+    owner_id: 1,
+    owner_name: "foo",
+    renter_name: "bar",
+    created_at: `<timestamp>`,
+    rental_period: 168
+  },
+  // etc.
+]
+```
+
+- [ ] `[DELETE] /api/rentals/:tech_item_id`
+
+response body:
+
+```js
+{
+  rental_id: 1,
+  tech_item_id: 1
+}
+```
+
+## Schemas
+
+### users schema
+| field    | data type        | metadata                                                      |
+| -------- | ---------------- | ------------------------------------------------------------- |           
+| user_id  | unsigned integer | primary key, autoincrements, generated by db                  |
+| username | string           | required, unique, alphanumeric                                |
+| password | string           | required, saved as hash                                       |
+| role_id  | integer          | required, `role_id: 1` for `owner`, `role_id: 2` for `renter` |
+
+### roles schema
+| field            | data type         | metadata                                     |
+| ---------------- | ----------------- | -------------------------------------------- |           
+| role_id          | unsingned integer | primary key, autoincrements, generated by db |
+| role_name        | string            | required, unique                             |
+
+### categories schema
+| field         | data type         | metadata                                     |
+| ------------- | ----------------- | -------------------------------------------- |
+| category_id   | unsingned integer | primary key, autoincrements, generated by db |
+| category_name | string            | required                                     |
+
+### tech_items schema
+| field                 | data type         | metadata                                                   |
+| --------------------- | ----------------- | ---------------------------------------------------------- |           
+| tech_item_id          | unsingned integer | primary key, autoincrements, generated by db               |
+| tech_item_title       | string            | required, unique                                           |
+| tech_item_description | string            | optional                                                   |
+| tech_item_price       | decimal           | required                                                   |
+| min_rental_period     | integer           | required                                                   |
+| max_rental_period     | integer           | required                                                   |
+| category_id           | integer           | required, references `category_id` from table `categories` |
+| owner_id              | integer           | required, references `user_id` from table `users`          |
+
+### rentals schema
+| field         | data type         | metadata                                                               |
+| ------------- | ----------------- | ---------------------------------------------------------------------- |
+| rental_id     | unsingned integer | primary key, autoincrements, generated by db                           |
+| rental_period | integer           | required, mesured in `hours`                                           |
+| created_at    | timestamp         | generated by db                                                        |
+| owner_id      | integer           | required, foreign key, references `user_id` in table `user`            |
+| renter_id     | integer           | required, foreign key, references `user_id` in table `user`            |
+| tech_item_id  | integer           | required, foreign key, references `tech_item_id` in table `tech_items` |
