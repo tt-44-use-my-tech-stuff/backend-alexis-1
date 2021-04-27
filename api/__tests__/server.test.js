@@ -117,12 +117,165 @@ describe('server.js', () => {
     });
   });
   describe('[GET] /api/tech_items', () => {
-    it('on SUCCESS reponds with status 200 and list of tech items', async () => {
-      const { body } = await request(server).post('/api/auth/login');
+    it('[14] on SUCCESS reponds with status 200 and list of tech items', async () => {
+      const buzz = users[1];
+      const { body } = await request(server).post('/api/auth/login').send({ username: buzz.username, password: '1234' });
       const { token } = body;
       const res = await request(server).get('/api/tech_items').set('authorization', token);
       expect(res.status).toBe(200);
       expect(res.body).toHaveLength(tech_items.length);
+    });
+    it('[15] on SUCCESS reponds with tech_items list in correct format', async () => {
+      const buzz = users[1];
+      const { body } = await request(server).post('/api/auth/login').send({ username: buzz.username, password: '1234' });
+      const { token } = body;
+      const res = await request(server).get('/api/tech_items').set('authorization', token);
+      expect(res.status).toBe(200);
+      const sony = tech_items[0];
+      expect(res.body[0]).toMatchObject({ ...sony, owner_name: 'woody' });
+    });
+    it('[16] on FAIL due to no token, responds with `token required`', async () => {
+      const res = await request(server).get('/api/tech_items');
+      expect(res.status).toBe(401);
+      expect(res.body).toMatchObject({ message: /token required/i });
+    });
+  });
+  describe('[GET] /api/tech_items/:itech_item_id', () => {
+    it('[17] on SUCCESS reponds with status 200', async () => {
+      const buzz = users[1];
+      const { body } = await request(server).post('/api/auth/login').send({ username: buzz.username, password: '1234' });
+      const { token } = body;
+      const res = await request(server).get(`/api/tech_items/${1}`).set('authorization', token);
+      expect(res.status).toBe(200);
+    });
+    it('[18] on SUCCESS reponds with tech_items list in correct format', async () => {
+      const buzz = users[1];
+      const { body } = await request(server).post('/api/auth/login').send({ username: buzz.username, password: '1234' });
+      const { token } = body;
+      const sony = tech_items[0];
+      const res = await request(server).get(`/api/tech_items/${1}`).set('authorization', token);
+      expect(res.status).toBe(200);
+      expect(res.body[0]).toMatchObject({ ...sony, owner_name: 'woody' });
+    });
+    it('[19] on FAIL due to `tech_item_id` not existing responds with status 404 and { "message": "tech_item was not found" }', async () => {
+      const buzz = users[1];
+      const { body } = await request(server).post('/api/auth/login').send({ username: buzz.username, password: '1234' });
+      const { token } = body;
+      const res = await request(server).get(`/api/tech_items/${99999999999}`).set('authorization', token);
+      expect(res.body).toMatchObject({ message: "tech_item was not found" });
+    });
+    it('[20] on FAIL due to no token, responds with `token required`', async () => {
+      const res = await request(server).get(`/api/tech_items/${1}`);
+      expect(res.status).toBe(401);
+      expect(res.body).toMatchObject({ message: /token required/i });
+    });
+  });
+  describe('[POST] /api/tech_items', () => {
+    it('[21] on SUCCESS responds with status 201 and the newly created tech_item', async () => {
+      const buzz = users[1];
+      const input = {
+        tech_item_title: "Tech Item Title",
+        tech_item_description: "Tech Item Description",
+        tech_item_price: 110.00,
+        min_rental_period: 24,
+        max_rental_period: 168,
+        category_name: "Virtual Reality"
+      }
+      const { body } = await request(server).post('/api/auth/login').send({ username: buzz.username, password: '1234' });
+      const { token } = body;
+      const res = await request(server).post(`/api/tech_items`).set('authorization', token).send(input);
+      const actual = res.body;
+      const expected = {
+        ...input,
+        tech_item_id: 11,
+        owner_id: 2,
+        owner_name: buzz.username
+      }
+      expect(actual).toMatchObject(expected);
+      expect(res.status).toMatchObject(201);
+    });
+    test('[22] on FAIL due to missing field responds with status 400 and { message: "tech_item_title, tech_item_description, tech_item_price, min_rental_period max_rental_period, category_name are required" }', async () => {
+      const buzz = users[1];
+      const input = {
+        tech_item_title: "Tech Item Title",
+        tech_item_description: "Tech Item Description",
+        /* missing price */
+        min_rental_period: 24,
+        max_rental_period: 168,
+        category_name: "Virtual Reality"
+      }
+      const { body } = await request(server).post('/api/auth/login').send({ username: buzz.username, password: '1234' });
+      const { token } = body;
+      const res = await request(server).get(`/api/tech_items`).set('authorization', token).send(input);
+      expect(res.body).toMatchObject({ message: "tech_item_title, tech_item_description, tech_item_price, min_rental_period max_rental_period, category_name are required" });
+      expect(res.status).toMatchObject(400);
+    });
+  });
+  describe('[PUT] /api/tech_items', () => {
+    test('[23] on SUCCESS responds with status 200 and the updated tech_item', async () => {
+      const woody = users[0];
+      const input = {
+        tech_item_title: "New Tech Item Title",
+        tech_item_description: "New Tech Item Description",
+        tech_item_price: 110.00,
+        min_rental_period: 24,
+        max_rental_period: 168,
+        category_name: "Virtual Reality"
+      }
+      const { body } = await request(server).post('/api/auth/login').send({ username: woody.username, password: '1234' });
+      const { token } = body;
+      const tech_item_id = 1;
+      const res = await request(server).put(`/api/tech_items/${tech_item_id}`).set('authorization', token).send(input);
+      const actual = res.body;
+      const expected = {
+        ...input,
+        tech_item_id: 1,
+        owner_id: 2,
+        owner_name: woody.username
+      }
+      expect(actual).toMatchObject(expected);
+      expect(res.status).toMatchObject(200);
+    });
+    test('[24] on FAIL due to missing field responds with status 400 and { message: "tech_item_title, tech_item_description, tech_item_price, min_rental_period max_rental_period, category_name are required" }', async () => {
+      const woody = users[0];
+      const input = {
+        tech_item_title: "New Tech Item Title",
+        tech_item_description: "New Tech Item Description",
+        /* missing price */
+        min_rental_period: 24,
+        max_rental_period: 168,
+        category_name: "Virtual Reality"
+      }
+      const { body } = await request(server).post('/api/auth/login').send({ username: woody.username, password: '1234' });
+      const { token } = body;
+      const tech_item_id = 1;
+      const res = await request(server).put(`/api/tech_items/${tech_item_id}`).set('authorization', token).send(input);
+      const actual = res.body;
+      const expected = {
+        message: "tech_item_title, tech_item_description, tech_item_price, min_rental_period max_rental_period, category_name are required"
+      }
+      expect(res.status).toBe(400);
+      expect(actual).toMatchObject(expected);
+    });
+  });
+  describe('[DELETE] /api/tech_items/:tech_item_id', () => {
+    test('[25] on SUCCESS responds with status 200 and the `tech_item_id` of deleted `tech_item`', async () => {
+      const woody = users[0];
+      const { body } = await request(server).post('/api/auth/login').send({ username: woody.username, password: '1234' });
+      const { token } = body;
+      const tech_item_id = 1;
+      const res = await request(server).delete(`/api/tech_items/${tech_item_id}`).set('authorization', token);
+      expect(res.status).toBe(200);
+      expect(res.body).toMatchObject({ tech_item_id: 1 });
+    });
+    test('[26] on FAIL due to `tech_item_id` not existing responds with status 404 and { "message": "tech_item was not found" }', async () => {
+      const woody = users[0];
+      const { body } = await request(server).post('/api/auth/login').send({ username: woody.username, password: '1234' });
+      const { token } = body;
+      const tech_item_id = 199999999999999;
+      const res = await request(server).delete(`/api/tech_items/${tech_item_id}`).set('authorization', token);
+      expect(res.status).toBe(404);
+      expect(res.body).toMatchObject({ message: "tech_item was not found" });
     });
   });
 });
