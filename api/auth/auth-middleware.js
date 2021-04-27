@@ -3,7 +3,9 @@ const { JWT_SECRET } = require('../config/secrets');
 const User = require('../users/user-model');
 
 const only = role_name => (req, res, next) => {
-
+  req.decodedToken.role_name === role_name
+  ? next()
+  : next({ message: `only accessible to ${role_name}` });
 }
 
 const restricted = (req, res, next) => {
