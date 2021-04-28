@@ -1,11 +1,10 @@
 const db = require('../data/db-config');
-const { trace } = require('../utils/index');
 
 const findAll = () => {
   return db('users as u')
     .join('roles as r', 'u.role_id', 'r.role_id')
     .select('u.username', 'u.user_id', 'r.role_name');
-  }
+}
   
 const findBy = filter => {
   return db('users as u')
@@ -42,7 +41,6 @@ const deleteById = async user_id => {
   await db('users').where({ user_id }).delete();
   return { user_id };
 }
-
 
 module.exports = {
   findAll,

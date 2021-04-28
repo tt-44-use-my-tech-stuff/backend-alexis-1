@@ -86,7 +86,7 @@ response body:
     max_rental_period: 168,
     category_name: "Virtual Reality",
     owner_id: 1,
-    owner_name: "foo"
+    username: "foo"
   },
   // etc.
 ]
@@ -106,30 +106,8 @@ response body:
   max_rental_period: 168,
   category_name: "Virtual Reality",
   owner_id: 1,
-  owner_name: "foo"
+  username: "foo"
 }
-```
-
-- [ ] `[GET] /api/tech_items/:owner_id`
-
-response body:
-
-```js
-/* list of items that belong to same owner */
-[
-  {
-    tech_item_id: 1,
-    tech_item_title: "Tech Item Title",
-    tech_item_description: "Tech Item Description",
-    tech_item_price: 110.00,
-    min_rental_period: 24,
-    max_rental_period: 168,
-    category_name: "Virtual Reality",
-    owner_id: 1,
-    owner_name: "foo"
-  },
-  // etc.
-]
 ```
 
 - [ ] `[POST] /api/tech_items`
@@ -161,11 +139,11 @@ response body:
   max_rental_period: 168,
   category_name: "Virtual Reality",
   owner_id: 1,
-  owner_name: "foo"
+  username: "foo"
 }
 ```
 
-- [ ] `[PUT] /api/tech_items/:tech_item_id`
+- [ ] `[PUT] /api/tech_items/:tech_item_id/owners/:owner_id`
 
 required:
 
@@ -205,11 +183,11 @@ response body:
   max_rental_period: 72,
   category_name: "Virtual Reality",
   owner_id: 1,
-  owner_name: "foo"
+  username: "foo"
 }
 ```
 
-- [ ] `[DELETE] /api/tech_items/:tech_item_id`
+- [ ] `[DELETE] /api/tech_items/:tech_item_id/owners/:owner_id`
 
 response body:
 
