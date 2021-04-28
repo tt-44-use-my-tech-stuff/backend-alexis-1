@@ -5,7 +5,7 @@ const jwtDecode = require('jwt-decode');
 const { users, tech_items } = require('../data/sample-data');
 
 const marlin = { username: 'marlin', password: '1234', role_id: 1 }; // owners
-const crush = { username: 'crush', password: '1234', role_id: 1 };
+// const crush = { username: 'crush', password: '1234', role_id: 1 };
 const gill = { username: 'gill', password: '1234', role_id: 2 }; // renters
 // const darla = { username: 'darla', password: '1234', role_id: 2 };
 
@@ -126,13 +126,23 @@ describe('server.js', () => {
       expect(res.body).toHaveLength(tech_items.length);
     });
     it('[15] on SUCCESS reponds with tech_items list in correct format', async () => {
-      const buzz = users[1];
-      const { body } = await request(server).post('/api/auth/login').send({ username: buzz.username, password: '1234' });
+      const woody = users[0];
+      const { body } = await request(server).post('/api/auth/login').send({ username: woody.username, password: '1234' });
       const { token } = body;
       const res = await request(server).get('/api/tech_items').set('authorization', token);
       expect(res.status).toBe(200);
-      const sony = tech_items[0];
-      expect(res.body[0]).toMatchObject({ ...sony, owner_name: 'woody' });
+      // const sony = tech_items[0];
+      expect(res.body[0]).toMatchObject({
+        "tech_item_id": 1,
+        "tech_item_title": "Sony 8k QLED Smart TV",
+        "tech_item_description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+        "tech_item_price": "100.00",
+        "min_rental_period": 24,
+        "max_rental_period": 72,
+        "category_id": 1,
+        "owner_id": 1,
+        "username": "woody",
+        "category_name": "TV & Video" });
     });
     it('[16] on FAIL due to no token, responds with `token required`', async () => {
       const res = await request(server).get('/api/tech_items');
@@ -148,20 +158,29 @@ describe('server.js', () => {
       const res = await request(server).get(`/api/tech_items/${1}`).set('authorization', token);
       expect(res.status).toBe(200);
     });
-    it('[18] on SUCCESS reponds with tech_items list in correct format', async () => {
+    it('[18] on SUCCESS reponds with tech_item in correct format', async () => {
       const buzz = users[1];
       const { body } = await request(server).post('/api/auth/login').send({ username: buzz.username, password: '1234' });
       const { token } = body;
-      const sony = tech_items[0];
       const res = await request(server).get(`/api/tech_items/${1}`).set('authorization', token);
       expect(res.status).toBe(200);
-      expect(res.body[0]).toMatchObject({ ...sony, owner_name: 'woody' });
+      expect(res.body).toMatchObject({
+        "tech_item_id": 1,
+        "tech_item_title": "Sony 8k QLED Smart TV",
+        "tech_item_description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+        "tech_item_price": "100.00",
+        "min_rental_period": 24,
+        "max_rental_period": 72,
+        "category_id": 1,
+        "owner_id": 1,
+        "username": "woody",
+        "category_name": "TV & Video" });
     });
     it('[19] on FAIL due to `tech_item_id` not existing responds with status 404 and { "message": "tech_item was not found" }', async () => {
       const buzz = users[1];
       const { body } = await request(server).post('/api/auth/login').send({ username: buzz.username, password: '1234' });
       const { token } = body;
-      const res = await request(server).get(`/api/tech_items/${99999999999}`).set('authorization', token);
+      const res = await request(server).get(`/api/tech_items/${9999}`).set('authorization', token);
       expect(res.body).toMatchObject({ message: "tech_item was not found" });
     });
     it('[20] on FAIL due to no token, responds with `token required`', async () => {
@@ -187,14 +206,40 @@ describe('server.js', () => {
       const actual = res.body;
       const expected = {
         ...input,
-        tech_item_id: 11,
+        tech_item_price: "110.00",
+        tech_item_id: 9,
         owner_id: 2,
-        owner_name: buzz.username
+        username: buzz.username
       }
       expect(actual).toMatchObject(expected);
-      expect(res.status).toMatchObject(201);
+      expect(res.status).toBe(201);
     });
-    test('[22] on FAIL due to missing field responds with status 400 and { message: "tech_item_title, tech_item_description, tech_item_price, min_rental_period max_rental_period, category_name are required" }', async () => {
+    it('[22] on SUCCESS if new category is set, responds with status 201 and the newly created tech_item and add new category ', async () => {
+      const buzz = users[1];
+      const input = {
+        tech_item_title: "Tech Item Title",
+        tech_item_description: "Tech Item Description",
+        tech_item_price: 110.00,
+        min_rental_period: 24,
+        max_rental_period: 168,
+        category_name: "Entertainment"
+      }
+      const { body } = await request(server).post('/api/auth/login').send({ username: buzz.username, password: '1234' });
+      const { token } = body;
+      const res = await request(server).post(`/api/tech_items`).set('authorization', token).send(input);
+      const actual = res.body;
+      const expected = {
+        ...input,
+        tech_item_price: "110.00",
+        tech_item_id: 9,
+        owner_id: 2,
+        username: buzz.username
+      }
+      expect(actual).toMatchObject(expected);
+      expect(actual.category_id).toEqual(8);
+      expect(res.status).toBe(201);
+    });
+    test('[23] on FAIL due to missing field responds with status 400 and { message: "tech_item_title, tech_item_description, tech_item_price, min_rental_period max_rental_period, category_name are required" }', async () => {
       const buzz = users[1];
       const input = {
         tech_item_title: "Tech Item Title",
@@ -206,13 +251,39 @@ describe('server.js', () => {
       }
       const { body } = await request(server).post('/api/auth/login').send({ username: buzz.username, password: '1234' });
       const { token } = body;
-      const res = await request(server).get(`/api/tech_items`).set('authorization', token).send(input);
+      const res = await request(server).post(`/api/tech_items`).set('authorization', token).send(input);
       expect(res.body).toMatchObject({ message: "tech_item_title, tech_item_description, tech_item_price, min_rental_period max_rental_period, category_name are required" });
-      expect(res.status).toMatchObject(400);
+      expect(res.status).toBe(400);
     });
   });
-  describe('[PUT] /api/tech_items', () => {
-    test('[23] on SUCCESS responds with status 200 and the updated tech_item', async () => {
+  describe('[PUT] /api/tech_items/:tech_item_id/owners/:owner_id', () => {
+    test('[24] on SUCCESS if a new category is set, responds with status 200 and the updated tech_item with the new category', async () => {
+      const woody = users[0];
+      const input = {
+        tech_item_title: "New Tech Item Title",
+        tech_item_description: "New Tech Item Description",
+        tech_item_price: 110.00,
+        min_rental_period: 24,
+        max_rental_period: 168,
+        category_name: "Entertainment"
+      }
+      const { body } = await request(server).post('/api/auth/login').send({ username: woody.username, password: '1234' });
+      const { token } = body;
+      const tech_item_id = 1;
+      const owner_id = 1;
+      const res = await request(server).put(`/api/tech_items/${tech_item_id}/owners/${owner_id}`).set('authorization', token).send(input);
+      const actual = res.body;
+      const expected = {
+        ...input,
+        tech_item_id: 1,
+        owner_id: 1,
+        tech_item_price: "110.00",
+        username: woody.username
+      }
+      expect(actual).toMatchObject(expected);
+      expect(res.status).toBe(200);
+    });
+    test('[25] on SUCCESS responds with status 200 and the updated tech_item', async () => {
       const woody = users[0];
       const input = {
         tech_item_title: "New Tech Item Title",
@@ -225,18 +296,20 @@ describe('server.js', () => {
       const { body } = await request(server).post('/api/auth/login').send({ username: woody.username, password: '1234' });
       const { token } = body;
       const tech_item_id = 1;
-      const res = await request(server).put(`/api/tech_items/${tech_item_id}`).set('authorization', token).send(input);
+      const owner_id = 1;
+      const res = await request(server).put(`/api/tech_items/${tech_item_id}/owners/${owner_id}`).set('authorization', token).send(input);
       const actual = res.body;
       const expected = {
         ...input,
         tech_item_id: 1,
-        owner_id: 2,
-        owner_name: woody.username
+        tech_item_price: "110.00",
+        owner_id: 1,
+        username: woody.username
       }
       expect(actual).toMatchObject(expected);
-      expect(res.status).toMatchObject(200);
+      expect(res.status).toBe(200);
     });
-    test('[24] on FAIL due to missing field responds with status 400 and { message: "tech_item_title, tech_item_description, tech_item_price, min_rental_period max_rental_period, category_name are required" }', async () => {
+    test('[26] on FAIL due to missing field responds with status 400 and { message: "tech_item_title, tech_item_description, tech_item_price, min_rental_period max_rental_period, category_name are required" }', async () => {
       const woody = users[0];
       const input = {
         tech_item_title: "New Tech Item Title",
@@ -249,7 +322,8 @@ describe('server.js', () => {
       const { body } = await request(server).post('/api/auth/login').send({ username: woody.username, password: '1234' });
       const { token } = body;
       const tech_item_id = 1;
-      const res = await request(server).put(`/api/tech_items/${tech_item_id}`).set('authorization', token).send(input);
+      const owner_id = 1;
+      const res = await request(server).put(`/api/tech_items/${tech_item_id}/owners/${owner_id}`).set('authorization', token).send(input);
       const actual = res.body;
       const expected = {
         message: "tech_item_title, tech_item_description, tech_item_price, min_rental_period max_rental_period, category_name are required"
@@ -258,24 +332,171 @@ describe('server.js', () => {
       expect(actual).toMatchObject(expected);
     });
   });
-  describe('[DELETE] /api/tech_items/:tech_item_id', () => {
-    test('[25] on SUCCESS responds with status 200 and the `tech_item_id` of deleted `tech_item`', async () => {
+  describe('[DELETE] /api/tech_items/:tech_item_id/owners/:owner_id', () => {
+    test('[27] on SUCCESS responds with status 200 and the `tech_item_id` of deleted `tech_item`', async () => {
       const woody = users[0];
       const { body } = await request(server).post('/api/auth/login').send({ username: woody.username, password: '1234' });
       const { token } = body;
       const tech_item_id = 1;
-      const res = await request(server).delete(`/api/tech_items/${tech_item_id}`).set('authorization', token);
+      const owner_id = 1;
+      const res = await request(server).delete(`/api/tech_items/${tech_item_id}/owners/${owner_id}`).set('authorization', token);
       expect(res.status).toBe(200);
-      expect(res.body).toMatchObject({ tech_item_id: 1 });
+      expect(res.body).toMatchObject({ tech_item_id: "1" });
     });
-    test('[26] on FAIL due to `tech_item_id` not existing responds with status 404 and { "message": "tech_item was not found" }', async () => {
+    test('[28] on FAIL due to `tech_item_id` not existing responds with status 404 and { "message": "tech_item was not found" }', async () => {
       const woody = users[0];
       const { body } = await request(server).post('/api/auth/login').send({ username: woody.username, password: '1234' });
       const { token } = body;
-      const tech_item_id = 199999999999999;
-      const res = await request(server).delete(`/api/tech_items/${tech_item_id}`).set('authorization', token);
+      const tech_item_id = 1999;
+      const owner_id = 1;
+      const res = await request(server).delete(`/api/tech_items/${tech_item_id}/owners/${owner_id}`).set('authorization', token);
       expect(res.status).toBe(404);
       expect(res.body).toMatchObject({ message: "tech_item was not found" });
     });
   });
+  // describe('[GET] /api/users/:owner_id/tech_items', () => {
+  //   test('[29] on SUCCESS responds with status 200 and a list of tech_items for `user` of id `owner_id`', async () => {
+  //     const woody = users[0];
+  //     const { body } = await request(server).post('/api/auth/login').send({ username: woody.username, password: '1234' });
+  //     const { token } = body;
+  //     const decoded = jwtDecode(token);
+  //     const res = await request(server).get(`/api/users/${decoded.subject}/tech_items`);
+  //     expect(res.status).toBe(200);
+  //     const [ woodysTech ] = await db('tech_items as ti')
+  //       .leftJoin('categories as cat', 'ti.category_id', 'cat.category_id')
+  //       .leftJoin('users as u', 'u.user_id', 'ti.owner_id')
+  //       .select('ti.*', 'u.username', 'cat.category_name')
+  //       .where({ username: woody.username })
+  //       .orderBy('ti.tech_item_id', 'asc');
+  //     expect(res.body).toMatchObject(woodysTech);
+  //     expect(res.status).toBe(200);
+  //   });
+  //   test('[30] on FAIL due to `role_name` `renter` responds with status 401 and { message: "only accessible to owner" }', async () => {
+  //     const zurg = users[6];
+  //     const { body } = await request(server).post('/api/auth/login').send({ username: zurg.username, password: '1234' });
+  //     const { token } = body;
+  //     const decoded = jwtDecode(token);
+  //     const res = await request(server).get(`/api/users/${decoded.subject}/tech_items`);
+  //     expect(res.status).toBe(401);
+  //     expect(res.body).toMatchObject({ message: "only accessible to owner" });
+  //   });
+  // });
+  // describe('[GET] /api/users/:owner_id/tech_items/:tech_item_id', () => {
+  //   test('[31] on SUCCESS responds with status 200 and tech_id of `owner`', async () => {
+  //     const woody = users[0];
+  //     const { body } = await request(server).post('/api/auth/login').send({ username: woody.username, password: '1234' });
+  //     const { token } = body;
+  //     const decoded = jwtDecode(token);
+  //     const tech_item_id = 1;
+  //     const res = await request(server).get(`/api/users/${decoded.subject}/tech_items/${tech_item_id}`);
+  //     expect(res.status).toBe(200);
+  //     expect(res.body).toMatchObject({ 
+  //       tech_item_title: 'Sony 8k QLED Smart TV',
+  //       tech_item_description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+  //       tech_item_price: 100.00,
+  //       min_rental_period: 24,
+  //       max_rental_period: 72,
+  //       category_name: "TV & Video",
+  //       owner_id: 1,
+  //       username: woody.username
+  //     });
+  //     expect(res.status).toBe(200);
+  //   });
+  //   test('[32] on FAIL due to no tech_item responds with status 404 and { message: "tech_item was not found" }', async () => {
+  //     const woody = users[0];
+  //     const { body } = await request(server).post('/api/auth/login').send({ username: woody.username, password: '1234' });
+  //     const { token } = body;
+  //     const decoded = jwtDecode(token);
+  //     const tech_item_id = 1000;
+  //     const res = await request(server).get(`/api/users/${decoded.subject}/tech_items/${tech_item_id}`);
+  //     expect(res.status).toBe(200);
+  //     expect(res.body).toMatchObject({ message: "tech_item was not found" });
+  //     expect(res.status).toBe(404);
+  //   });
+  // });
+  // describe('[PUT] /api/users/:owner_id/tech_items/:tech_item_id', () => {
+  //   test('[33] on SUCCESS responds with status 200 and the new tech item', async () => {
+  //     const woody = users[0];
+  //     const input = {
+  //       tech_item_title: "New Tech Item Title",
+  //       tech_item_description: "New Tech Item Description",
+  //       tech_item_price: 110.00,
+  //       min_rental_period: 24,
+  //       max_rental_period: 168,
+  //       category_name: "Virtual Reality"
+  //     }
+  //     const { body } = await request(server).post('/api/auth/login').send({ username: woody.username, password: '1234' });
+  //     const { token } = body;
+  //     const tech_item_id = 1;
+  //     const decoded = jwtDecode(token);
+  //     const res = await request(server).put(`/api/users/${decoded.subject}/tech_items/${tech_item_id}`).set('authorization', token).send(input);
+  //     const actual = res.body;
+  //     const expected = {
+  //       ...input,
+  //       tech_item_id: 1,
+  //       owner_id: 2,
+  //       username: woody.username
+  //     }
+  //     expect(actual).toMatchObject(expected);
+  //     expect(res.status).toBe(200);
+  //   });
+  //   test('[34] on SUCCESS if new category responds with status 200 and the new tech item and new category', async () => {
+  //     const woody = users[0];
+  //     const input = {
+  //       tech_item_title: "New Tech Item Title",
+  //       tech_item_description: "New Tech Item Description",
+  //       tech_item_price: 110.00,
+  //       min_rental_period: 24,
+  //       max_rental_period: 168,
+  //       category_name: "Entertainment"
+  //     }
+  //     const { body } = await request(server).post('/api/auth/login').send({ username: woody.username, password: '1234' });
+  //     const { token } = body;
+  //     const tech_item_id = 1;
+  //     const decoded = jwtDecode(token);
+  //     const res = await request(server).put(`/api/users/${decoded.subject}/tech_items/${tech_item_id}`).set('authorization', token).send(input);
+  //     const actual = res.body;
+  //     const expected = {
+  //       ...input,
+  //       tech_item_id: 1,
+  //       owner_id: 2,
+  //       owner_name: woody.username
+  //     }
+  //     expect(actual).toMatchObject(expected);
+  //     expect(res.status).toBe(200);
+  //   });
+  //   test('[35] on FAIL due to missing fields', async () => {
+  //     const woody = users[0];
+  //     const input = {
+  //       tech_item_title: "New Tech Item Title",
+  //       tech_item_description: "New Tech Item Description",
+  //       /* missing price */
+  //       min_rental_period: 24,
+  //       max_rental_period: 168,
+  //       category_name: "Virtual Reality"
+  //     }
+  //     const { body } = await request(server).post('/api/auth/login').send({ username: woody.username, password: '1234' });
+  //     const { token } = body;
+  //     const decoded = jwtDecode(token);
+  //     const tech_item_id = 1;
+  //     const res = await request(server).put(`/api/users/${decoded.subject}/tech_items/${tech_item_id}`).set('authorization', token).send(input);
+  //     const actual = res.body;
+  //     const expected = {
+  //       message: "tech_item_title, tech_item_description, tech_item_price, min_rental_period max_rental_period, category_name are required"
+  //     }
+  //     expect(res.status).toBe(400);
+  //     expect(actual).toMatchObject(expected);
+  //   });
+  // });
+  // describe('[DELETE] /api/users/:owner_id/tech_items/:tech_item_id', () => {
+  //   test('[36] on SUCCESS responds with status 200 and `tech_item_id`', async () => {
+  //     const woody = users[0];
+  //     const { body } = await request(server).post(`/api/auth/login`).send({ username: woody.username, password: '1234' });
+  //     const owner_id = 1;
+  //     const tech_item_id = 1;
+  //     const res = await request(server).delete(`/api/users/${owner_id}/tech_items/:${tech_item_id}`).set('authorization', body.token);
+  //     expect(res.status).toBe(200);
+  //     expect(res.body).toMatchObject({ tech_item_id: 1 });
+  //   });
+  // });
 });
