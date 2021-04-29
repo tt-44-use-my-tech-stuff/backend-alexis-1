@@ -431,4 +431,39 @@ describe('server.js', () => {
       expect(res.body).toMatchObject({ message: "Token required" });
     });
   });
+  describe('[GET] /api/users/:user_id/rentals/:rental_id', () => {
+    test('on SUCCESS responds with status 200 and rented item', async () => {
+      const zurg = users[6];
+      const { body } = await request(server).post(`/api/auth/login`).send({ username: zurg.username, password: '1234' });
+      const { token } = body;
+      const renter_id = 7;
+      const rental_id = 2;
+      const res = await request(server).get(`/api/users/${renter_id}/rentals/${rental_id}`).set('authorization', token);
+      expect(res.body).toMatchObject({
+        tech_item_title: 'Yamaha Surround Sound 5.1',
+        tech_item_description: 'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
+        tech_item_price: "50.00", 
+        min_rental_period: 24,
+        max_rental_period: 120,
+        category_id: 2,
+        category_name: "Home Audio & Theater",
+        owner_id: 2,
+        owner_name: "buzz",
+        renter_id: 7,
+        renter_name: "zurg",
+        created_at: res.body.created_at
+      });
+      expect(res.status).toBe(200);
+    });
+    test('on FAIL due to rental not existing responds with status 404 and { message: "rental was not found" }', async () => {
+      const zurg = users[6];
+      const { body } = await request(server).post(`/api/auth/login`).send({ username: zurg.username, password: '1234' });
+      const { token } = body;
+      const renter_id = 7;
+      const rental_id = 100;
+      const res = await request(server).get(`/api/users/${renter_id}/rentals/${rental_id}`).set('authorization', token);
+      expect(res.body).toMatchObject({ message: "rental was not found" });
+      expect(res.status).toBe(404);
+    });
+  });
 });

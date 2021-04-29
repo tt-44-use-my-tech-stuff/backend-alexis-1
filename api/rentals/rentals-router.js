@@ -1,7 +1,9 @@
 const router = require('express').Router();
 const Rental = require('./rentals-model');
+const { only } = require('../auth/auth-middleware');
+const { checkRentalExists } = require('./rentals-middleware');
 
-router.get('/', async (req, res, next) => {
+router.get('/', only('renter'), async (req, res, next) => {
   const renter_id = req.decodedToken.subject;
   try {
     const rentals = await Rental.findByRenterId(renter_id);
@@ -11,8 +13,9 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-router.get('/:rental_id', (req, res, next) => {
-
+router.get('/:rental_id', checkRentalExists, (req, res, next) => {
+  console.log("req.rental",req.rental)
+  res.status(200).json(req.rental);
 });
 
 router.post('/', (req, res, next) => { //eslint-disable-line
