@@ -201,85 +201,109 @@ response body:
 
 required: `headers: { authorization: <token> }`
 
-- [ ] `[GET] /api/rentals`
+only for `renter`
+
+- [ ] `[GET] /api/users/:user_id/rentals`
 
 response body: 
 
 ```js
 [
   {
+    rental_id: 1,
     tech_item_title: "Tech Item Title",
     tech_item_description: "Tech Item Description",
     tech_item_price: 110.00,
     min_rental_period: 24,
     max_rental_period: 168,
+    category_id: 7,
     category_name: "Virtual Reality",
     owner_id: 1,
     owner_name: "foo"
-  }
-]
-```
-
-- [ ] `[GET] /api/rentals/:owner_id`
-
-response body:
-
-```js
-/* list of tech_items `owner` has rented */
-[
-  {
-    rental_id: 1,
-    tech_item_id: 1,
-    tech_item_title: "Tech Item Title",
-    tech_item_description: "Tech Item Description",
-    tech_item_price: 110.00,
-    min_rental_period: 24,
-    max_rental_period: 168,
-    category_name: "Virtual Reality",
-    owner_id: 1,
-    owner_name: "foo",
-    renter_name: "bar",
-    created_at: `<timestamp>`,
-    rental_period: 168
+    renter_id: 2
+    renter_name: "bar"
+    created_at: `<timestamp>`
   },
-  // etc.
-]
-
-```
-- [ ] `[GET] /api/rentals/:renter_id`
-
-response body:
-
-```js
-/* list of tech_items `renter` is borrowing */
-[
-  {
-    rental_id: 1,
-    tech_item_id: 1,
-    tech_item_title: "Tech Item Title",
-    tech_item_description: "Tech Item Description",
-    tech_item_price: 110.00,
-    min_rental_period: 24,
-    max_rental_period: 168,
-    category_name: "Virtual Reality",
-    owner_id: 1,
-    owner_name: "foo",
-    renter_name: "bar",
-    created_at: `<timestamp>`,
-    rental_period: 168
-  },
-  // etc.
+  // etc
 ]
 ```
 
-- [ ] `[DELETE] /api/rentals/:tech_item_id`
+- [ ] `[GET] /api/users/:user_id/rentals/:rental_id`
+
+only for `renter`
 
 response body:
 
 ```js
 {
   rental_id: 1,
-  tech_item_id: 1
+  tech_item_title: "Tech Item Title",
+  tech_item_description: "Tech Item Description",
+  tech_item_price: 110.00,
+  min_rental_period: 24,
+  max_rental_period: 168,
+  category_id: 7,
+  category_name: "Virtual Reality",
+  owner_id: 1,
+  owner_name: "foo"
+  renter_id: 2
+  renter_name: "bar",
+  created_at: `<timestamp>`
+}
+```
+- [ ] `[POST] /api/users/:renter_id/rentals`
+
+request body:
+
+```js
+{
+  tech_item_id,
+  renter_id,
+  owner_id,
+  rental_period
+}
+```
+
+response body:
+
+```js
+{
+  rental_id: 1,
+  tech_item_title: "Tech Item Title",
+  tech_item_description: "Tech Item Description",
+  tech_item_price: 110.00,
+  min_rental_period: 24,
+  max_rental_period: 168,
+  rental_period: 35,
+  category_id: 7,
+  category_name: "Virtual Reality",
+  owner_id: 1,
+  owner_name: "foo"
+  renter_id: 2
+  renter_name: "bar",
+  created_at: `<timestamp>` 
+}
+```
+
+- [ ] `[GET] /api/categories`
+
+response body:
+
+```js
+[
+  { category_id: 1, category_name: "Virtual Reality" },
+  // etc.
+]
+```
+
+- [ ] `[GET] /api/categories/:category_id`
+
+response body:
+
+```js
+{
+  category_id: 1,
+  category_name: "Virtual Reality"
 }
 ```
 

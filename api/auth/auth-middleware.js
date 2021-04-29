@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { JWT_SECRET } = require('../config/secrets');
-const User = require('../users/user-model');
+const User = require('../users/users-model');
 
 const only = role_name => (req, res, next) => {
   req.decodedToken.role_name === role_name
