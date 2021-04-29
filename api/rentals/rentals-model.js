@@ -51,8 +51,9 @@ const findByRenterId = async renter_id => {
   return formatRentals(rows);
 }
 
-const create = tech_item => { //eslint-disable-line
-
+const create = async rental => { //eslint-disable-line
+  const [ newRental ] = await db('rentals as r').insert(rental, ['r.rental_id']);
+  return findById(newRental.rental_id);
 }
 
 const update = (rental_id, changes) => { //eslint-disable-line
