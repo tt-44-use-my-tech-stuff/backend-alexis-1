@@ -1,8 +1,8 @@
 const router = require('express').Router();
 const bcrypt = require('bcryptjs');
-const User = require('../users/user-model');
+const User = require('../users/users-model');
 const { generateToken } = require('../utils');
-const { checkUserBodyRegister, checkUserBodyLogin, checkUsernameFree, checkUsernameExists, restricted } = require('./auth-middleware');
+const { checkUserBodyRegister, checkUserBodyLogin, checkUsernameFree, checkUsernameExists } = require('./auth-middleware');
 
 router.post('/register', checkUserBodyRegister, checkUsernameFree, async (req, res, next) => {
   const { username, password, role_id } = req.body;

@@ -10,13 +10,7 @@ const findById = category_id => {
     .first();
 }
 
-const findBy = filter => {
-  return db('categories as cat')
-    .where(filter);
-}
-
 module.exports = {
   findAll,
-  findById,
-  findBy
+  findById
 }
